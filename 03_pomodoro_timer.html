@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>뽀모도로 타이머</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        min-width: 400px;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .timer-display {
+        font-size: 4rem;
+        font-weight: bold;
+        margin: 30px 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .timer-display.work {
+        color: #ff6b6b;
+      }
+
+      .timer-display.break {
+        color: #4ecdc4;
+      }
+
+      .status {
+        font-size: 1.2rem;
+        margin: 20px 0;
+        opacity: 0.9;
+      }
+
+      .controls {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin: 30px 0;
+      }
+
+      button {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+      }
+
+      button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .settings {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .setting-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+      }
+
+      input[type="number"] {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 10px;
+        width: 80px;
+        text-align: center;
+        font-size: 1rem;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .cycles-info {
+        margin-top: 20px;
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        margin: 20px 0;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff6b6b, #ffa500);
+        border-radius: 4px;
+        transition: width 1s ease;
+        width: 0%;
+      }
+
+      .progress-fill.break {
+        background: linear-gradient(90deg, #4ecdc4, #44a08d);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .timer-display.pulsing {
+        animation: pulse 1s infinite;
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          margin: 20px;
+          padding: 30px 20px;
+          min-width: auto;
+        }
+
+        .timer-display {
+          font-size: 3rem;
+        }
+
+        .controls {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🍅 뽀모도로 타이머</h1>
+
+      <div class="timer-display work" id="timerDisplay">25:00</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="status" id="status">집중 시간</div>
+
+      <div class="controls">
+        <button id="startBtn">시작</button>
+        <button id="pauseBtn" disabled>일시정지</button>
+        <button id="resetBtn">리셋</button>
+      </div>
+
+      <div class="cycles-info">
+        <div>완료한 뽀모도로: <span id="completedCycles">0</span>개</div>
+      </div>
+
+      <div class="settings">
+        <h3 style="margin-bottom: 20px">⚙️ 설정</h3>
+        <div class="setting-group">
+          <label>집중 시간 (분):</label>
+          <input type="number" id="workMinutes" value="25" min="1" max="60" />
+        </div>
+        <div class="setting-group">
+          <label>짧은 휴식 (분):</label>
+          <input
+            type="number"
+            id="shortBreakMinutes"
+            value="5"
+            min="1"
+            max="15"
+          />
+        </div>
+        <div class="setting-group">
+          <label>긴 휴식 (분):</label>
+          <input
+            type="number"
+            id="longBreakMinutes"
+            value="15"
+            min="10"
+            max="30"
+          />
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 타이머 상태 관리 변수들
+      let timerInterval = null; // setInterval 참조
+      let isRunning = false; // 타이머 실행 상태
+      let currentMode = "work"; // 현재 모드: 'work', 'short-break', 'long-break'
+      let timeLeft = 25 * 60; // 남은 시간 (초)
+      let completedCycles = 0; // 완료한 뽀모도로 수
+      let totalTime = 25 * 60; // 전체 시간 (진행률 계산용)
+
+      // DOM 요소 참조
+      const timerDisplay = document.getElementById("timerDisplay");
+      const progressFill = document.getElementById("progressFill");
+      const status = document.getElementById("status");
+      const startBtn = document.getElementById("startBtn");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const completedCyclesSpan = document.getElementById("completedCycles");
+      const workMinutesInput = document.getElementById("workMinutes");
+      const shortBreakMinutesInput =
+        document.getElementById("shortBreakMinutes");
+      const longBreakMinutesInput = document.getElementById("longBreakMinutes");
+
+      // 시간을 MM:SS 형식으로 변환하는 함수
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes.toString().padStart(2, "0")}:${secs
+          .toString()
+          .padStart(2, "0")}`;
+      }
+
+      // 화면 업데이트 함수
+      function updateDisplay() {
+        timerDisplay.textContent = formatTime(timeLeft);
+
+        // 진행률 계산 및 업데이트
+        const progress = ((totalTime - timeLeft) / totalTime) * 100;
+        progressFill.style.width = `${progress}%`;
+
+        // 완료한 뽀모도로 수 업데이트
+        completedCyclesSpan.textContent = completedCycles;
+      }
+
+      // 모드 변경 함수
+      function switchMode(mode) {
+        currentMode = mode;
+
+        // 모드에 따른 시간 설정
+        if (mode === "work") {
+          timeLeft = parseInt(workMinutesInput.value) * 60;
+          status.textContent = "집중 시간";
+          timerDisplay.className = "timer-display work";
+          progressFill.className = "progress-fill";
+        } else if (mode === "short-break") {
+          timeLeft = parseInt(shortBreakMinutesInput.value) * 60;
+          status.textContent = "짧은 휴식";
+          timerDisplay.className = "timer-display break";
+          progressFill.className = "progress-fill break";
+        } else if (mode === "long-break") {
+          timeLeft = parseInt(longBreakMinutesInput.value) * 60;
+          status.textContent = "긴 휴식";
+          timerDisplay.className = "timer-display break";
+          progressFill.className = "progress-fill break";
+        }
+
+        totalTime = timeLeft; // 진행률 계산을 위한 전체 시간 저장
+        updateDisplay();
+      }
+
+      // 타이머 시작 함수
+      function startTimer() {
+        if (isRunning) return; // 이미 실행 중이면 중복 실행 방지
+
+        isRunning = true;
+        startBtn.disabled = true; // 시작 버튼 비활성화
+        pauseBtn.disabled = false; // 일시정지 버튼 활성화
+
+        // 타이머 애니메이션 효과
+        timerDisplay.classList.add("pulsing");
+
+        // 1초마다 실행되는 타이머
+        timerInterval = setInterval(() => {
+          timeLeft--; // 1초 감소
+          updateDisplay();
+
+          // 시간이 다 되었을 때
+          if (timeLeft <= 0) {
+            completeCurrentMode();
+          }
+        }, 1000);
+      }
+
+      // 타이머 일시정지 함수
+      function pauseTimer() {
+        if (!isRunning) return;
+
+        isRunning = false;
+        clearInterval(timerInterval); // 타이머 정지
+        timerInterval = null;
+
+        startBtn.disabled = false; // 시작 버튼 활성화
+        pauseBtn.disabled = true; // 일시정지 버튼 비활성화
+
+        timerDisplay.classList.remove("pulsing");
+      }
+
+      // 타이머 리셋 함수
+      function resetTimer() {
+        pauseTimer(); // 실행 중이면 먼저 정지
+        switchMode(currentMode); // 현재 모드의 초기 시간으로 리셋
+      }
+
+      // 현재 모드 완료 처리 함수
+      function completeCurrentMode() {
+        pauseTimer();
+
+        // 완료 알림 소리 (브라우저 기본 알림음)
+        playNotificationSound();
+
+        if (currentMode === "work") {
+          // 집중 시간 완료
+          completedCycles++;
+
+          // 4번째 뽀모도로 완료 시 긴 휴식, 아니면 짧은 휴식
+          if (completedCycles % 4 === 0) {
+            alert("🎉 4번째 뽀모도로 완료! 긴 휴식을 취하세요.");
+            switchMode("long-break");
+          } else {
+            alert("✅ 뽀모도로 완료! 짧은 휴식을 취하세요.");
+            switchMode("short-break");
+          }
+        } else {
+          // 휴식 시간 완료
+          alert("⏰ 휴식 완료! 새로운 뽀모도로를 시작하세요.");
+          switchMode("work");
+        }
+
+        updateDisplay();
+      }
+
+      // 알림음 재생 함수
+      function playNotificationSound() {
+        // Web Audio API를 사용한 간단한 비프음 생성
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // 800Hz 주파수
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // 볼륨
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.2); // 0.2초간 재생
+      }
+
+      // 설정 변경 시 현재 모드 시간 업데이트
+      function updateCurrentModeTime() {
+        if (!isRunning) {
+          // 실행 중이 아닐 때만 업데이트
+          if (currentMode === "work") {
+            timeLeft = parseInt(workMinutesInput.value) * 60;
+          } else if (currentMode === "short-break") {
+            timeLeft = parseInt(shortBreakMinutesInput.value) * 60;
+          } else if (currentMode === "long-break") {
+            timeLeft = parseInt(longBreakMinutesInput.value) * 60;
+          }
+          totalTime = timeLeft;
+          updateDisplay();
+        }
+      }
+
+      // 이벤트 리스너 등록
+      startBtn.addEventListener("click", startTimer);
+      pauseBtn.addEventListener("click", pauseTimer);
+      resetBtn.addEventListener("click", resetTimer);
+
+      // 설정 입력 필드 이벤트 리스너
+      workMinutesInput.addEventListener("change", updateCurrentModeTime);
+      shortBreakMinutesInput.addEventListener("change", updateCurrentModeTime);
+      longBreakMinutesInput.addEventListener("change", updateCurrentModeTime);
+
+      // 키보드 단축키 지원
+      document.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+          e.preventDefault(); // 스페이스바의 기본 동작 방지
+          if (isRunning) {
+            pauseTimer();
+          } else {
+            startTimer();
+          }
+        } else if (e.code === "KeyR") {
+          e.preventDefault();
+          resetTimer();
+        }
+      });
+
+      // 브라우저 탭 제목 업데이트 (타이머 진행 상황 표시)
+      function updatePageTitle() {
+        if (isRunning) {
+          document.title = `${formatTime(timeLeft)} - ${
+            status.textContent
+          } | 뽀모도로`;
+        } else {
+          document.title = "뽀모도로 타이머";
+        }
+      }
+
+      // 페이지 제목 업데이트를 위한 타이머 수정
+      const originalStartTimer = startTimer;
+      startTimer = function () {
+        originalStartTimer();
+
+        // 타이머 실행 중 페이지 제목 업데이트
+        const titleUpdateInterval = setInterval(() => {
+          if (isRunning) {
+            updatePageTitle();
+          } else {
+            clearInterval(titleUpdateInterval);
+            document.title = "뽀모도로 타이머";
+          }
+        }, 1000);
+      };
+
+      // 브라우저 알림 권한 요청 (선택사항)
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
+      // 브라우저 알림 표시 함수
+      function showBrowserNotification(title, body) {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(title, {
+            body: body,
+            icon: "🍅",
+            tag: "pomodoro", // 같은 태그의 알림은 하나만 표시
+          });
+        }
+      }
+
+      // completeCurrentMode 함수 수정 (브라우저 알림 추가)
+      const originalCompleteCurrentMode = completeCurrentMode;
+      completeCurrentMode = function () {
+        pauseTimer();
+        playNotificationSound();
+
+        if (currentMode === "work") {
+          completedCycles++;
+
+          if (completedCycles % 4 === 0) {
+            showBrowserNotification(
+              "뽀모도로 완료!",
+              "4번째 뽀모도로 완료! 긴 휴식을 취하세요."
+            );
+            alert("🎉 4번째 뽀모도로 완료! 긴 휴식을 취하세요.");
+            switchMode("long-break");
+          } else {
+            showBrowserNotification("뽀모도로 완료!", "짧은 휴식을 취하세요.");
+            alert("✅ 뽀모도로 완료! 짧은 휴식을 취하세요.");
+            switchMode("short-break");
+          }
+        } else {
+          showBrowserNotification(
+            "휴식 완료!",
+            "새로운 뽀모도로를 시작하세요."
+          );
+          alert("⏰ 휴식 완료! 새로운 뽀모도로를 시작하세요.");
+          switchMode("work");
+        }
+
+        updateDisplay();
+      };
+
+      // 초기 화면 업데이트
+      updateDisplay();
+
+      // 페이지 로드 시 환영 메시지
+      setTimeout(() => {
+        console.log("🍅 뽀모도로 타이머에 오신 것을 환영합니다!");
+        console.log(
+          "💡 팁: 스페이스바로 시작/일시정지, R키로 리셋할 수 있습니다."
+        );
+      }, 500);
+    </script>
+  </body>
+</html>
