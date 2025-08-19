@@ -6,9 +6,105 @@
     <title>폼 테스트</title>
   </head>
   <body>
+
+    <details>
+    <summary>더보기</summary>
+     <p>
+        <ul>
+            <li>https://search.naver.com/search.naver</li>
+            <li><strong>?where=nexearch</strong></li>
+            <li><strong>&sm=top_hty</strong></li>
+            <li>&fbm=0</li>
+            <li>&ie=utf8</li>
+            <li><strong>&query=%EC%9E%90%EB%B0%94</strong></li>
+            <li>&ackey=riw8iv1s</li>
+        </ul>
+    </p>
+    <p>href=...</p>
+    </details>
+    
+    <br />
+    <br />
+
+
+
+    <!-- required 개발자 도구에서 수정 가능 보안 측면 관련해서 공부하기 -->
+    <!-- Opera Web Browser 개발자 도구 단축키 : Ctrl + Shift + C -->
+    <!-- Chrome Web Browser 개발자 도구 단축키 : F12 -->
+
     <form action="https://search.naver.com/search.naver" method="get">
-      <input type="text" name="query" />
+      <label>
+        <input type="text" name="query" 
+        placeholder="검색어를 입력해 주세요" required> 
+
+      </label>
       <button>검색</button>
     </form>
+
+    <br />
+    <br />
+
+    <form action="https://search.naver.com/search.naver"
+        method="get">
+        <label>
+            검색어 :
+            <select name="query">
+                <option value="JAVA">JAVA</option>
+                <option value="SQL">SQL</option>
+                <option value="HTML">HTML</option>
+            </select>
+        </label>
+        <button>검색</button>
+    </form>
+
+    <br />
+    <br />
+
+    <form action="https://search.naver.com/search.naver"
+        method="get">
+        <label>
+            검색어 :
+            <label>
+                <input type="radio" name="query" value="SpringBoot"> SpringBoot
+            </label>
+            <label>
+                <input type="radio" name="query" value="JPA"> JPA
+            </label>
+            <label>
+                <input type="radio" name="query" value="JSP"> JSP
+            </label>
+        </label>
+        <button>검색</button>
+    </form>
+
+    <br />
+    <br />
+
+    <form action="https://search.naver.com/search.naver"
+        method="get">
+        <label>
+            검색어 :
+            <input type="text" name="query" list="keywords">
+            <datalist id="keywords">
+                <option value="HTML">
+                <option value="CSS">
+                <option value="JavaScript">
+            </datalist>
+        </label>
+        <button>검색</button>
+    </form>
+
+    <br />
+    <br />
+
+    <form action="https://search.naver.com/search.naver"
+        method="get">
+        <label>
+            검색어 :
+            <textarea name="query"></textarea>
+        </label>
+        <button>검색</button>
+    </form>
+    <!-- https://help.naver.com/service/5626/contents/959?lang=ko&osType=COMMONOS -->
   </body>
 </html>
